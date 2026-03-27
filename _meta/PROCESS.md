@@ -14,6 +14,11 @@ A repeatable guide for spinning up a new AI-assisted project in the kAI system.
 - `kAI/` directory exists somewhere on your machine (location is up to you)
 - `CLAUDE.md` is at the kAI root (controls Claude's session behavior)
 - `_template/` contains blank `SESSION.md` and `project_plan.md`
+- Git configured globally — required before first commit:
+  ```
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+  ```
 
 ---
 
@@ -66,8 +71,18 @@ Claude reads `CLAUDE.md` automatically, which instructs it to load `SESSION.md` 
 ```powershell
 claude
 ```
-Claude will automatically:
-1. Read `CLAUDE.md`
-2. Read `SESSION.md`
-3. Read the status file for the active project
-4. Confirm ready and state current focus
+Then run `/kai` — Claude will:
+1. Read `SESSION.md`
+2. Read status files for all active projects
+3. Greet with a recap of last session decisions and a suggested starting point
+
+## Closing a Session
+Run `/close` — Claude will:
+1. Update `Active Work` sections in all touched status files
+2. Update `Last Session Decisions` in SESSION.md
+3. Update `last_updated` frontmatter in every changed file
+4. Commit all changes with a session summary message
+5. Push to GitHub
+6. Confirm: "All files updated — ready for next session."
+
+**Important:** Always use `/close` to end a session. Do not just close the terminal — in-progress work will not be captured.

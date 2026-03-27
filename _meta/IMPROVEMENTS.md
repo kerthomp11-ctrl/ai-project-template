@@ -23,6 +23,21 @@ Add an entry whenever something works better than expected, fails, or could be d
 
 ## Log
 
+### 2026-03-27 — /close skill + session close overhaul
+**Observation:** Session close was vague, manual, and easy to skip. No git commit step. No `last_updated` enforcement. No safety net if Kerry just closed the terminal. Three decision logs (memory, DECISIONS.md, SESSION.md) had no ownership rules, causing drift.
+**Recommendation:** (1) Created `/close` custom skill — runs full checklist automatically: Active Work, Last Session Decisions, last_updated frontmatter, git commit, git push. (2) CLAUDE.md updated: /close reminder fires when session-ending phrases are detected without /close; concrete ordered close checklist; Decision Log Ownership section added; memory dual-write rule strengthened. (3) PROCESS.md updated with /close in session workflow.
+**Status:** Done
+
+### 2026-03-27 — Persona system needed for different effort types
+**Observation:** Different efforts require different AI response styles. A home improvement task, a health conversation, and a technical build all benefit from different tones and levels of directiveness. Currently Kai operates in one mode regardless of context.
+**Recommendation:** Design a persona/mode system with at least three variants: (1) Builder mode — current style, directive and efficient; (2) Supportive mode — encouraging, patient, emotionally aware — for sensitive personal topics like health and VA claims; (3) Collaborative mode — offers more explicit choices, checks in more often, makes Kerry feel more in control of decisions. Each effort's project_plan.md could declare a default persona. Kerry can also switch modes mid-conversation.
+**Status:** Open — deferred, design when ready to implement
+
+### 2026-03-27 — Memory should live inside the kAI file structure
+**Observation:** Kai's memory currently lives in Claude's internal storage (`~/.claude/projects/.../memory/`). This is not portable, not visible in the file structure, and not backed up with the project. If Kerry switches tools or machines, memory is lost.
+**Recommendation:** Mirror all memory files into the kAI workspace itself — e.g., a `_memory/` folder at the kAI root. This makes memory visible, editable, version-controlled, and portable. Claude's internal memory can remain as a fast-load cache, but the kAI file structure is the source of truth.
+**Status:** Done — `_memory/` created at kAI root; gitignored (private); backed up via OneDrive; CLAUDE.md updated with sync instructions
+
 ### 2026-03-27 — Rebranded to MetaTemplate
 **Observation:** "AI-Assisted Project Management" was too narrow — implied only project tracking, excluded coding, daily tasks, health tracking, and other effort types.
 **Recommendation:** Use "MetaTemplate" as the name going forward. It connects to the existing `_meta/` structure, signals "a template for how to work" rather than a specific work type, and avoids scope-limiting language. Update all references: presentation, README, GitHub description, and any future marketing materials.
@@ -51,7 +66,7 @@ Add an entry whenever something works better than expected, fails, or could be d
 1. `CLAUDE.md` is Claude-specific — the template needs a parallel `AGENT.md` (or similar) written in AI-agnostic language so any assistant can load and follow the session protocol
 2. A `QUICKSTART.md` needs to exist in the template — a human-readable onboarding doc that tells a new user exactly what to do to stand up their own version of this system from scratch
 3. Any Claude-specific syntax or tooling referenced in process docs should be noted as Claude-specific, with a note on what the equivalent would be in other tools
-**Status:** Open — delivery format (zip vs. repo) to be decided later. When Kerry says "prepare for sharing," build QUICKSTART.md, AGENT.md, and annotate process docs at that time.
+**Status:** Done — `AGENT.md` and `QUICKSTART.md` both created in `_template/`. AGENT.md covers all environments including paste-based M365 workflow. QUICKSTART.md covers setup, session workflow, all three environment guides, and customization.
 
 ### 2026-03-27 — Multi-environment compatibility: document how to run this in constrained AI tools
 **Observation:** This system must work across different AI environments with different capabilities — not just Claude Code. Three environments to target:
