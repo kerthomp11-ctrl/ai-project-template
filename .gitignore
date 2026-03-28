@@ -13,3 +13,11 @@ _memory/
 
 # Claude Code internals
 .claude/
+
+# Personal runtime files — generic template versions live in _template/
+_meta/TRIGGERS.md
+_meta/PERSONAS.md
+
+# Personal workstreams
+kpro/
+ops/
