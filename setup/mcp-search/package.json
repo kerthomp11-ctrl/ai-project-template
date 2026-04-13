@@ -1,0 +1,10 @@
+{
+  "name": "kai-search",
+  "version": "1.0.0",
+  "description": "BM25 semantic search MCP server for kAI project files",
+  "type": "module",
+  "main": "server.js",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  }
+}

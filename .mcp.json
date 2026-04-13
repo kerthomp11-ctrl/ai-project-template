@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "kai-search": {
+      "command": "node",
+      "args": ["setup/mcp-search/server.js"],
+      "env": { "KAI_ROOT": "." }
+    }
+  }
+}
