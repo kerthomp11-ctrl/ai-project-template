@@ -48,10 +48,12 @@ See **[QUICKSTART.md](QUICKSTART.md)** for full details on all environments.
 ```
 ├── AGENT.md              ← AI session instructions
 ├── QUICKSTART.md         ← Full setup guide
+├── .mcp.json             ← MCP server config (Claude Code search — auto-loaded)
 ├── setup/                ← Run one of these to set up your workspace
 │   ├── claude-code/      ← setup.ps1 (Windows) + setup.sh (Linux/Mac)
 │   ├── github-copilot/   ← setup.ps1 + setup.sh
-│   └── generic/          ← setup.ps1 + setup.sh
+│   ├── generic/          ← setup.ps1 + setup.sh
+│   └── mcp-search/       ← BM25 keyword search MCP server (Claude Code only)
 ├── _template/            ← Blank files copied into your workspace by the script
 │   ├── project_plan.md
 │   ├── status.md
@@ -61,6 +63,20 @@ See **[QUICKSTART.md](QUICKSTART.md)** for full details on all environments.
 │   └── commands/         ← Session commands for Claude Code
 └── _meta/                ← Process docs and design decisions
 ```
+
+## Search (Claude Code)
+
+The template includes a built-in BM25 keyword search server (`setup/mcp-search/`) that lets Claude search your workspace files without loading everything into context.
+
+**To activate:**
+```
+cd setup/mcp-search
+npm install
+```
+
+Then restart Claude Code. The server is pre-registered in `.mcp.json` — no additional config needed. Claude will use it automatically to find relevant sections before loading full files.
+
+---
 
 ## Philosophy
 

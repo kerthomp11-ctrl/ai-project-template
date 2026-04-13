@@ -119,6 +119,13 @@ Claude Code is a command-line AI tool with full file access and persistent memor
    cp _template/commands/setup.md .claude/commands/setup.md
    ```
 
+**Optional: activate keyword search (recommended):**
+```
+cd setup/mcp-search
+npm install
+```
+Then restart Claude Code. This enables BM25 search over your markdown files — Claude will find relevant sections before loading full files, keeping sessions lean as your workspace grows.
+
 **Starting setup (first time only):**
 ```
 cd my-workspace
