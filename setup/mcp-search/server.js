@@ -5,7 +5,9 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprot
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join, relative, extname, resolve } from 'path';
 
-const KAI_ROOT = resolve(process.env.KAI_ROOT || '.');
+const SEARCH_ROOTS = (process.env.SEARCH_ROOTS || process.env.KAI_ROOT || '.')
+  .split(',')
+  .map(r => resolve(r.trim()));
 const EXCLUDE_DIRS = new Set(['.git', 'node_modules']);
 
 // --- BM25 ---
@@ -106,20 +108,24 @@ function chunkMarkdown(filePath) {
 // --- Index ---
 
 class KaiIndex {
-  constructor(root) {
-    this.root = root;
+  constructor(roots) {
+    this.roots = roots;
     this.engine = null;
     this.mtimes = new Map();
   }
 
+  allFiles() {
+    return this.roots.flatMap(r => scanFiles(r));
+  }
+
   needsRebuild() {
-    const files = scanFiles(this.root);
+    const files = this.allFiles();
     if (files.length !== this.mtimes.size) return true;
     return files.some(f => this.mtimes.get(f.path) !== f.mtime);
   }
 
   build() {
-    const files = scanFiles(this.root);
+    const files = this.allFiles();
     const engine = new BM25();
     for (const f of files) {
       this.mtimes.set(f.path, f.mtime);
@@ -128,10 +134,14 @@ class KaiIndex {
     this.engine = engine;
   }
 
+  rootFor(filePath) {
+    return this.roots.find(r => filePath.startsWith(r)) || this.roots[0];
+  }
+
   search(query, topK = 5) {
     if (!this.engine || this.needsRebuild()) this.build();
     return this.engine.search(query, topK).map(r => ({
-      file: relative(this.root, r.file),
+      file: relative(this.rootFor(r.file), r.file),
       section: r.section,
       lines: `${r.startLine + 1}–${r.endLine + 1}`,
       score: r.score,
@@ -142,7 +152,7 @@ class KaiIndex {
 
 // --- MCP Server ---
 
-const index = new KaiIndex(KAI_ROOT);
+const index = new KaiIndex(SEARCH_ROOTS);
 
 const server = new Server(
   { name: 'kai-search', version: '1.0.0' },
