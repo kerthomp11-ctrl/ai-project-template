@@ -1,6 +1,6 @@
 ---
 type: agent-instructions
-last_updated: 2026-03-28
+last_updated: 2026-04-18
 ---
 
 # Agent Session Instructions
@@ -38,7 +38,9 @@ Each effort follows the same pattern: one `project_plan.md` for stable reference
 
 **What to do:**
 1. Read `SESSION.md`
-2. Read the `status.md` for each active effort listed in SESSION.md
+2. Load active effort status — prefer section-level reads over full file reads:
+   - If a `kai-tools` MCP server is available: use `get_section(file, "Active Work")` and `get_section(file, "Priority Summary")` for each active effort
+   - If no MCP server: Read the full `status.md` for each active effort
 3. Greet with exactly this format:
 
 > "Welcome back, [Your Name]. Let's continue where we left off. Here is a summary of the last [X] decision points:

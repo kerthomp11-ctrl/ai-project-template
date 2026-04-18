@@ -11,7 +11,7 @@ last_updated: YYYY-MM-DD
 
 ---
 
-## Priority Summary — Now
+## Priority Summary
 
 | # | Item | Priority | Target Date | Status |
 |---|---|---|---|---|
@@ -29,3 +29,8 @@ last_updated: YYYY-MM-DD
 
 ## Open Questions
 - [Anything unresolved that needs a decision or follow-up]
+
+---
+
+## Archive
+- [Completed items move here from Active Work — not loaded in normal sessions]
