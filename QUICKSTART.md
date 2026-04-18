@@ -1,6 +1,6 @@
 ---
 type: quickstart
-last_updated: 2026-03-28
+last_updated: 2026-03-29
 ---
 
 # QuickStart Guide
@@ -27,6 +27,34 @@ No coding required. Works with most AI tools.
 **Optional but recommended:**
 - [Git](https://git-scm.com/) and a [GitHub](https://github.com) account — for version control and cloud backup of your workspace
 - [VS Code](https://code.visualstudio.com/) — useful as a file editor alongside AI tools
+
+**Required for power tools** (MCP server, sync, update checker):
+- [Node.js](https://nodejs.org/) v18 or higher
+
+  Install: download from nodejs.org and run the installer. Verify with:
+  ```
+  node --version
+  npm --version
+  ```
+  Once Node is installed, activate the MCP tools:
+  ```
+  cd setup/mcp-tools
+  npm install
+  ```
+  Then register in `.mcp.json` at your workspace root:
+  ```json
+  {
+    "mcpServers": {
+      "kai-tools": {
+        "command": "node",
+        "args": ["setup/mcp-tools/server.js"]
+      }
+    }
+  }
+  ```
+  Your AI can read this section and complete the setup for you — paste it the instruction block and say "set up the MCP tools."
+
+  **Why Node.js?** The setup tools (`sync-template.js`, `check-updates.js`, `mcp-tools/server.js`) are written in JavaScript so they run identically on Windows, Mac, and Linux without OS-specific scripting. Node is the only runtime already implied by the Claude Code install (`npm install -g @anthropic-ai/claude-code`). If you are not using Claude Code, you will need to install Node separately.
 
 ---
 
@@ -118,13 +146,6 @@ Claude Code is a command-line AI tool with full file access and persistent memor
    cp _template/commands/close.md .claude/commands/close.md
    cp _template/commands/setup.md .claude/commands/setup.md
    ```
-
-**Optional: activate keyword search (recommended):**
-```
-cd setup/mcp-search
-npm install
-```
-Then restart Claude Code. This enables BM25 search over your markdown files — Claude will find relevant sections before loading full files, keeping sessions lean as your workspace grows.
 
 **Starting setup (first time only):**
 ```
@@ -239,6 +260,27 @@ Fill this in once with background the AI should have when needed: who you are, y
 If an effort contains sensitive information (health data, personal finances, etc.):
 - Keep it in a separate folder outside your main workspace, or
 - Add it to `.gitignore` if you're using Git so it's never pushed to GitHub
+
+---
+
+## Power Tools (Node.js required)
+
+Three scripts in `setup/` extend the system. Run them from your workspace root.
+
+| Script | Command | What it does |
+|---|---|---|
+| `mcp-tools/server.js` | *(runs via MCP, not manually)* | Section-level file reads/writes and BM25 keyword search — used by your AI during sessions |
+| `check-updates.js` | `node setup/check-updates.js` | Detects which MetaTemplate versions you haven't applied; walks you through each update and shows the AI Integration prompt to paste to your AI |
+| `sync-template.js` | `node setup/sync-template.js` | *(For MetaTemplate contributors only)* Syncs changes from a private workspace to the public template repo — diffs, sanitizes, stages, and prompts to push |
+
+**Typical update workflow:**
+1. Pull the latest template files: `git pull` (or re-download)
+2. Run: `node setup/check-updates.js`
+3. For each unapplied version, copy the AI Integration prompt and paste it to your AI
+4. Your AI applies the structural changes; you confirm what it did
+5. Done — your workspace is on the latest version
+
+**Note on scripting language:** These tools are written in JavaScript (Node.js). A Python alternative is under consideration for users who prefer it — see `_meta/IMPROVEMENTS.md`. For now, Node.js is the standard.
 
 ---
 

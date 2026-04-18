@@ -1,6 +1,6 @@
 ---
 type: improvements-log
-last_updated: 2026-03-27
+last_updated: 2026-04-18
 ---
 
 # Improvements Log
@@ -22,6 +22,26 @@ Add an entry whenever something works better than expected, fails, or could be d
 ---
 
 ## Log
+
+### 2026-04-18 — Python alternative for setup scripts
+Setup tools (`sync-template.js`, `check-updates.js`) are currently Node.js. A Python version should be investigated for users who have Python but not Node — particularly data scientists and analysts who are a natural MetaTemplate audience. Python's `difflib`, `pathlib`, and `argparse` cover the same ground cleanly. Decision to use Node documented in `_meta/DECISIONS.md`. Revisit when there is user feedback indicating Node is a friction point.
+
+### 2026-03-30 — Copilot onboarding flow works without explicit setup instructions
+**Observation:** When Kerry ran /open on an uninitialized MetaTemplate download (no SESSION.md at root, no effort folders), GitHub Copilot in VS Code correctly identified the uninitialized state, explained what was missing, and offered to set up a new instance. It asked the right questions in the right order: name, workspace location, efforts, immediate focus — then built the workspace.
+**Recommendation:** This behavior emerged from the AGENT.md structure without an explicit "if uninitialized, run setup" instruction. Consider making this explicit in copilot-instructions.md to ensure it's reliable across AI tools. Also validates that the template file structure communicates intent clearly enough for an AI to infer setup state.
+**Status:** Done — first real-world Copilot onboarding test passed
+
+### 2026-03-30 — MetaTemplate missing .github/copilot-instructions.md for VS Code Copilot
+**Observation:** When Kerry set up the MetaTemplate on a corporate work PC (GitHub Copilot in VS Code, no Claude Code CLI), the template had no workspace-level Copilot instructions. Without this file, Copilot doesn't know to follow the session open/close system.
+**Recommendation:** Add `.github/copilot-instructions.md` to the template root. Content is a lightweight session layer (open/close triggers, AGENT.md pointer) that is additive to any existing user-level Copilot instructions.
+**Status:** Done — added to `_template/.github/copilot-instructions.md` and pushed to `ai-project-template`
+
+### 2026-03-29 — Setup script next-steps messages need real-world testing
+**Observation:** The "next steps" output at the end of each setup script was written based on current understanding of each tool's workflow. These have not been tested with a real user on a fresh machine.
+**Recommendation:** Test each script (claude-code, github-copilot, generic) on a clean install and verify the next-steps instructions are accurate and sufficient. Update messaging as needed.
+**Status:** Open — flag for first real-world test (Kerry's wife is the first test case for claude-code/Windows)
+
+
 
 ### 2026-03-27 — /close skill + session close overhaul
 **Observation:** Session close was vague, manual, and easy to skip. No git commit step. No `last_updated` enforcement. No safety net if Kerry just closed the terminal. Three decision logs (memory, DECISIONS.md, SESSION.md) had no ownership rules, causing drift.

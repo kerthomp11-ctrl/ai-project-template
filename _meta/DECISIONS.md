@@ -1,6 +1,6 @@
 ---
 type: decisions-log
-last_updated: 2026-03-27
+last_updated: 2026-03-29
 ---
 
 # Design Decisions
@@ -45,16 +45,15 @@ Static context (who Kerry is, working convention, property info, file map) lives
 
 ---
 
-## Template Lives Inside kAI Until "Prepare for Sharing"
+## kAI and ai-project-template are Separate Repos (2026-03-28)
 
-The `_template/` and `_meta/` folders currently live inside `kAI/` alongside the home project. This is intentional — the home project is actively informing the template, and separating them now creates overhead with no benefit.
+**Decision:** kAI is a private GitHub repo (`kerthomp11-ctrl/kAI`). The template is a separate public repo (`kerthomp11-ctrl/ai-project-template`). They are not linked — updates flow deliberately, not automatically.
 
-**When to separate:** When Kerry says "prepare for sharing." At that point:
-- `_template/` and `_meta/` move into their own repo (`kai-template/` or similar)
-- The home project stays in `kAI/` as a private workspace
-- The template repo goes public on GitHub; `kAI/` stays private
+**Why:** Previously kAI used ai-project-template as its git remote, which caused personal workstream files (kpro/, ops/, TRIGGERS.md, PERSONAS.md) to be published to the public repo unintentionally. The separation enforces a clean boundary: kAI is the workshop, ai-project-template is the published output.
 
-Keeping them together until then means one place to work, real use continuously improving the template, and no sync overhead.
+**How updates flow:** When a pattern or file in kAI is ready for general use, it gets pushed to ai-project-template manually. See `_meta/PROCESS.md` → "Pushing Template Improvements" for the steps.
+
+**Rule:** Never set kAI's git remote to ai-project-template again. kAI's remote is always `kerthomp11-ctrl/kAI` (private).
 
 ---
 
@@ -142,6 +141,23 @@ Kerry does not need to do the legwork. Claude does. Kerry's input shapes what ge
 **Decision:** `_template/` holds only files meant to be copied. `_meta/` holds process documentation.
 
 **Why:** These serve different purposes. Templates are operational artifacts — you copy them and fill them in. Process docs are reference and reflection — you read them to understand or improve the system. Mixing them would mean every new project either gets unnecessary meta files, or the meta docs get left behind when templating.
+
+---
+
+## Setup Tools are Written in JavaScript (Node.js)
+
+**Decision:** `sync-template.js`, `check-updates.js`, and `mcp-tools/server.js` are all Node.js scripts.
+
+**Why:** Three reasons drove this choice:
+1. Node is already implied by the Claude Code install (`npm install -g @anthropic-ai/claude-code`) — users with Claude Code already have it
+2. Node runs identically on Windows, Mac, and Linux — no OS-specific scripting
+3. File diffing, CHANGELOG parsing, and interactive prompts are verbose in bash but clean in JS
+
+**Why not Python?** Python is also cross-platform and readable. It was not chosen because Node was already present and Python is not implied by any other dependency in this stack. A Python rewrite is noted in `_meta/IMPROVEMENTS.md` as a future option — particularly if the user base skews toward developers who have Python but not Node.
+
+**How to replicate this decision:** If you are a MetaTemplate user building your own tools, use Node.js for consistency. Your AI can scaffold a new setup script by reading any existing script in `setup/` as a pattern — they share the same structure: path setup, interactive prompt helper, main() async function.
+
+**Rule:** Keep setup scripts dependency-free (no npm packages beyond what the MCP server needs). Scripts should run with `node [script].js` and nothing else.
 
 ---
 
