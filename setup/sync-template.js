@@ -7,13 +7,14 @@
  *
  * Steps:
  *   1. Builds a manifest of whitelisted files from kAI
- *   2. Diffs against ai-project-template — finds added, changed, deleted
- *   3. Runs sanitization checks on changed content
- *   4. Prompts for confirmation, then copies and stages
- *   5. Prompts for commit message and optional push
+ *   2. Reads and sanitizes each file — personal content is replaced, not warned about
+ *   3. Diffs sanitized content against ai-project-template — finds added, changed, deleted
+ *   4. Reports what changed and what was sanitized
+ *   5. Prompts for confirmation, then writes sanitized content and stages
+ *   6. Prompts for commit message and optional push
  */
 
-const fs = require('fs');
+const fs   = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { execSync } = require('child_process');
@@ -25,7 +26,6 @@ const KAI = path.resolve(__dirname, '..');
 const PUB = path.resolve(KAI, '..', 'ai-project-template');
 
 // ── Sync manifest ──────────────────────────────────────────────────────────
-// Explicit files tracked by kAI whitelist .gitignore
 const EXPLICIT_FILES = [
   'AGENT.md',
   'CHANGELOG.md',
@@ -40,39 +40,117 @@ const EXPLICIT_FILES = [
   '_meta/presentation.html',
 ];
 
-// Directories synced recursively
 const GLOB_DIRS = ['_template', 'setup'];
 
-// Patterns excluded from recursive sync
 const EXCLUDE_PATTERNS = [
   /node_modules/,
   /package-lock\.json$/,
   /\.git\//,
-  /sync-template\.js$/, // don't sync the sync script itself — it lives in setup/ of kAI only
+  /sync-template\.js$/,  // never sync the sync script itself
 ];
 
-// ── Sanitization — personal terms that should not appear in template files ─
-const PERSONAL_PATTERNS = [
-  { pattern: /C:\\Users\\kerry/gi,   label: 'Windows personal path (C:\\Users\\kerry)' },
-  { pattern: /\/c\/Users\/kerry/gi,  label: 'Unix personal path (/c/Users/kerry)' },
-  { pattern: /Kerry Thompson/g,      label: 'Full name (Kerry Thompson)' },
-  { pattern: /\bkerry\b(?!.*\bkerry\b)/gi, label: 'First name (kerry) — review in context' },
+// ── Sanitization rules — applied in order, most specific first ─────────────
+// Each rule: { pattern, replacement, label }
+// Pattern must be a function returning a fresh RegExp (flags with /g need reset each call).
+const SANITIZE_RULES = [
+  // Full name — before first-name rule
+  {
+    pattern: () => /Kerry Thompson/g,
+    replacement: '[Your Name]',
+    label: 'Full name',
+  },
+  // Windows path with trailing content (e.g. C:\Users\kerry\OneDrive\...)
+  {
+    pattern: () => /C:\\Users\\kerry\\[^\s"')>]*/gi,
+    replacement: '[workspace-path]',
+    label: 'Windows path',
+  },
+  // Unix path with trailing content
+  {
+    pattern: () => /\/c\/Users\/kerry\/[^\s"')>]*/gi,
+    replacement: '[workspace-path]',
+    label: 'Unix path',
+  },
+  // Bare Windows user path
+  {
+    pattern: () => /C:\\Users\\kerry/gi,
+    replacement: '[workspace-path]',
+    label: 'Windows user path',
+  },
+  // Bare Unix user path
+  {
+    pattern: () => /\/c\/Users\/kerry/gi,
+    replacement: '[workspace-path]',
+    label: 'Unix user path',
+  },
+  // GitHub username — before first-name rule so "kerry" inside it is caught here
+  {
+    pattern: () => /kerthomp11-ctrl/g,
+    replacement: '[your-github-username]',
+    label: 'GitHub username',
+  },
+  // First name (capitalized) — word boundary, not inside a URL or path
+  {
+    pattern: () => /\bKerry\b/g,
+    replacement: '[Your Name]',
+    label: 'First name',
+  },
+  // First name (lowercase) — catches incidental references
+  {
+    pattern: () => /\bkerry\b/g,
+    replacement: '[your-name]',
+    label: 'First name (lowercase)',
+  },
+  // Personal workstream abbreviations that have no meaning outside kAI
+  {
+    pattern: () => /\b(kpro|dffs|accom)\b/g,
+    replacement: '[effort]',
+    label: 'Personal workstream name',
+  },
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-function md5(filePath) {
-  if (!fs.existsSync(filePath)) return null;
-  return crypto.createHash('md5').update(fs.readFileSync(filePath)).digest('hex');
+function md5(content) {
+  return crypto.createHash('md5').update(content).digest('hex');
+}
+
+function readFile(filePath) {
+  return fs.readFileSync(filePath);  // returns Buffer
+}
+
+function isBinary(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  return ['.png', '.jpg', '.jpeg', '.gif', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.pdf'].includes(ext);
+}
+
+/**
+ * Apply all sanitization rules to text content.
+ * Returns { content: string, hits: [{ label, count }] }
+ */
+function sanitize(text) {
+  let content = text;
+  const hits = [];
+
+  for (const { pattern, replacement, label } of SANITIZE_RULES) {
+    const re = pattern();
+    const matches = content.match(re);
+    if (matches) {
+      hits.push({ label, count: matches.length });
+      content = content.replace(re, replacement);
+    }
+  }
+
+  return { content, hits };
 }
 
 function walkDir(dir, baseDir = dir, results = []) {
   if (!fs.existsSync(dir)) return results;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const fullPath = path.join(dir, entry.name);
-    const relPath = path.relative(baseDir, fullPath).replace(/\\/g, '/');
-    if (EXCLUDE_PATTERNS.some(r => r.test(fullPath.replace(/\\/g, '/') + (entry.isDirectory() ? '/' : '')))) continue;
+    const testPath = fullPath.replace(/\\/g, '/') + (entry.isDirectory() ? '/' : '');
+    if (EXCLUDE_PATTERNS.some(r => r.test(testPath))) continue;
     if (entry.isDirectory()) walkDir(fullPath, baseDir, results);
-    else results.push(relPath);
+    else results.push(path.relative(baseDir, fullPath).replace(/\\/g, '/'));
   }
   return results;
 }
@@ -80,8 +158,7 @@ function walkDir(dir, baseDir = dir, results = []) {
 function buildManifest() {
   const files = new Set(EXPLICIT_FILES);
   for (const dir of GLOB_DIRS) {
-    const srcDir = path.join(KAI, dir);
-    for (const rel of walkDir(srcDir)) {
+    for (const rel of walkDir(path.join(KAI, dir))) {
       files.add(`${dir}/${rel}`);
     }
   }
@@ -94,26 +171,21 @@ function buildPublicFileList() {
     if (fs.existsSync(path.join(PUB, rel))) files.push(rel);
   }
   for (const dir of GLOB_DIRS) {
-    const pubDir = path.join(PUB, dir);
-    for (const rel of walkDir(pubDir)) {
+    for (const rel of walkDir(path.join(PUB, dir))) {
       files.push(`${dir}/${rel}`);
     }
   }
   return files;
 }
 
-function sanitizationWarnings(content) {
-  const found = [];
-  for (const { pattern, label } of PERSONAL_PATTERNS) {
-    pattern.lastIndex = 0;
-    if (pattern.test(content)) found.push(label);
+function getPubRemote() {
+  try {
+    return execSync('git remote get-url origin', { cwd: PUB }).toString().trim()
+      .replace(/^https:\/\/github\.com\//, 'github.com/')
+      .replace(/\.git$/, '');
+  } catch {
+    return 'ai-project-template (remote unknown)';
   }
-  return found;
-}
-
-function isBinary(filePath) {
-  const ext = path.extname(filePath).toLowerCase();
-  return ['.png', '.jpg', '.jpeg', '.gif', '.ico', '.woff', '.woff2', '.ttf', '.eot', '.pdf'].includes(ext);
 }
 
 function ask(question) {
@@ -137,42 +209,50 @@ async function main() {
     process.exit(1);
   }
 
-  // Build file lists
-  const manifest = buildManifest();
+  const manifest    = buildManifest();
   const manifestSet = new Set(manifest);
-  const pubFiles = buildPublicFileList();
+  const pubFiles    = buildPublicFileList();
 
-  const added = [];
-  const changed = [];
-  const sanitizationIssues = {};
+  // ── Phase 1: diff with sanitized content ──────────────────────────────────
+  const added    = [];
+  const changed  = [];
+  const sanitizationReport = {};  // rel → [{ label, count }]
 
-  // Detect added and changed
+  // Pre-compute sanitized content for all source files
+  const sanitizedContent = {};  // rel → string | Buffer
+
   for (const rel of manifest) {
     const src = path.join(KAI, rel);
-    const dst = path.join(PUB, rel);
+    if (!fs.existsSync(src)) continue;
 
-    if (!fs.existsSync(src)) continue; // whitelisted but doesn't exist yet — skip
-
-    if (md5(src) === md5(dst)) continue; // identical
-
-    const isNew = !fs.existsSync(dst);
-    if (isNew) added.push(rel);
-    else changed.push(rel);
-
-    // Sanitization check (text files only)
-    if (!isBinary(src)) {
-      const content = fs.readFileSync(src, 'utf8');
-      const w = sanitizationWarnings(content);
-      if (w.length) sanitizationIssues[rel] = w;
+    if (isBinary(src)) {
+      sanitizedContent[rel] = readFile(src);  // binary: pass through unchanged
+    } else {
+      const raw = fs.readFileSync(src, 'utf8');
+      const { content, hits } = sanitize(raw);
+      sanitizedContent[rel] = content;
+      if (hits.length) sanitizationReport[rel] = hits;
     }
+
+    // Compare sanitized source to current destination
+    const dst = path.join(PUB, rel);
+    const srcHash = md5(Buffer.isBuffer(sanitizedContent[rel])
+      ? sanitizedContent[rel]
+      : Buffer.from(sanitizedContent[rel], 'utf8'));
+    const dstHash = fs.existsSync(dst)
+      ? md5(fs.readFileSync(dst))
+      : null;
+
+    if (srcHash === dstHash) continue;  // already in sync
+
+    if (!fs.existsSync(dst)) added.push(rel);
+    else changed.push(rel);
   }
 
-  // Detect deletions: files in PUB that are no longer in kAI manifest
-  const deleted = pubFiles.filter(f => {
-    if (manifestSet.has(f)) return false; // still in manifest
-    if (!fs.existsSync(path.join(KAI, f))) return true; // removed from kAI source
-    return false;
-  });
+  // Deletions: files in PUB not in manifest and not in kAI source
+  const deleted = pubFiles.filter(f =>
+    !manifestSet.has(f) && !fs.existsSync(path.join(KAI, f))
+  );
 
   const totalChanges = added.length + changed.length + deleted.length;
 
@@ -181,7 +261,7 @@ async function main() {
     return;
   }
 
-  // Report changes
+  // ── Phase 2: report ───────────────────────────────────────────────────────
   if (added.length) {
     console.log(`  NEW (${added.length}):`);
     added.forEach(f => console.log(`    + ${f}`));
@@ -198,24 +278,20 @@ async function main() {
     console.log('');
   }
 
-  // Sanitization warnings
-  const warnCount = Object.keys(sanitizationIssues).length;
-  if (warnCount > 0) {
-    console.log(`  ⚠  SANITIZATION WARNINGS (${warnCount} file${warnCount > 1 ? 's' : ''}) — review before pushing:`);
-    for (const [file, issues] of Object.entries(sanitizationIssues)) {
-      console.log(`     ${file}`);
-      issues.forEach(i => console.log(`       · ${i}`));
-    }
-    console.log('');
-    const proceed = await ask('  Personal content detected. Proceed anyway? [y/N] ');
-    if (proceed.toLowerCase() !== 'y') {
-      console.log('\nAborted. Fix the flagged content and re-run.\n');
-      return;
+  // Sanitization report — what was stripped
+  const sanitizedFiles = Object.keys(sanitizationReport);
+  if (sanitizedFiles.length) {
+    console.log(`  SANITIZED (${sanitizedFiles.length} file${sanitizedFiles.length > 1 ? 's' : ''}) — personal content replaced automatically:`);
+    for (const [file, hits] of Object.entries(sanitizationReport)) {
+      console.log(`    ${file}`);
+      hits.forEach(({ label, count }) =>
+        console.log(`      · ${label}${count > 1 ? ` (×${count})` : ''}`)
+      );
     }
     console.log('');
   }
 
-  // Confirm apply
+  // ── Phase 3: confirm and apply ────────────────────────────────────────────
   const confirm = await ask(`Apply ${totalChanges} change(s) to ai-project-template? [y/N] `);
   if (confirm.toLowerCase() !== 'y') {
     console.log('\nAborted.\n');
@@ -223,49 +299,48 @@ async function main() {
   }
   console.log('');
 
-  // Apply: copy added + changed
+  // Write sanitized content to destination
   for (const rel of [...added, ...changed]) {
-    const src = path.join(KAI, rel);
     const dst = path.join(PUB, rel);
     fs.mkdirSync(path.dirname(dst), { recursive: true });
-    fs.copyFileSync(src, dst);
+    const content = sanitizedContent[rel];
+    if (Buffer.isBuffer(content)) fs.writeFileSync(dst, content);
+    else fs.writeFileSync(dst, content, 'utf8');
   }
 
-  // Apply: remove deleted
+  // Remove deleted files
   for (const rel of deleted) {
     const dst = path.join(PUB, rel);
     if (fs.existsSync(dst)) fs.unlinkSync(dst);
   }
 
-  // Stage all changes in ai-project-template
+  // Stage all changes
   const allChanged = [...added, ...changed, ...deleted];
   for (const rel of allChanged) {
     execSync(`git add "${rel}"`, { cwd: PUB, stdio: 'inherit' });
   }
 
-  // Show staged stat
   const diffStat = execSync('git diff --cached --stat', { cwd: PUB }).toString().trim();
   console.log(diffStat);
   console.log('');
 
-  // Commit message
-  const fileNames = [...new Set(allChanged.map(f => path.basename(f)))].join(', ');
+  // ── Phase 4: commit ───────────────────────────────────────────────────────
+  const fileNames  = [...new Set(allChanged.map(f => path.basename(f)))].join(', ');
   const defaultMsg = `MetaTemplate sync: ${fileNames}`;
-  const msgInput = await ask(`Commit message (Enter for default):\n  "${defaultMsg}"\n> `);
-  const commitMsg = msgInput || defaultMsg;
+  const msgInput   = await ask(`Commit message (Enter for default):\n  "${defaultMsg}"\n> `);
+  const commitMsg  = msgInput || defaultMsg;
 
-  // Write commit message to temp file (handles special characters safely)
   const tmpMsg = path.join(os.tmpdir(), 'kai-sync-commit-msg.txt');
   fs.writeFileSync(tmpMsg, `${commitMsg}\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`);
   execSync(`git commit -F "${tmpMsg}"`, { cwd: PUB, stdio: 'inherit' });
   fs.unlinkSync(tmpMsg);
 
-  // Push prompt
-  console.log('');
-  const pushConfirm = await ask('Push to github.com/kerthomp11-ctrl/ai-project-template? [y/N] ');
+  // ── Phase 5: push ─────────────────────────────────────────────────────────
+  const remote      = getPubRemote();
+  const pushConfirm = await ask(`\nPush to ${remote}? [y/N] `);
   if (pushConfirm.toLowerCase() === 'y') {
     execSync('git push', { cwd: PUB, stdio: 'inherit' });
-    console.log('\n✓ Pushed to github.com/kerthomp11-ctrl/ai-project-template\n');
+    console.log(`\n✓ Pushed to ${remote}\n`);
   } else {
     console.log('\nCommitted locally. Run `git push` in ai-project-template when ready.\n');
   }
