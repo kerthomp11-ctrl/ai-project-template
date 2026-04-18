@@ -1,6 +1,6 @@
 ---
 type: process-guide
-last_updated: 2026-03-27
+last_updated: 2026-03-29
 ---
 
 # Project Setup Process
@@ -86,3 +86,45 @@ Run `/close` — Claude will:
 6. Confirm: "All files updated — ready for next session."
 
 **Important:** Always use `/close` to end a session. Do not just close the terminal — in-progress work will not be captured.
+
+---
+
+## Pushing Template Improvements to ai-project-template
+
+kAI is a private workspace. `ai-project-template` is a separate public repo that others can fork and use. They are not linked — updates flow deliberately, not automatically.
+
+### When to push
+
+Push to `ai-project-template` when a change in kAI improves the general pattern — not every session. Good candidates:
+- Improvements to `_template/` files (SESSION.md, status.md, project_plan.md, etc.)
+- New or revised process docs in `_meta/` that apply to any user
+- Updated AGENT.md, QUICKSTART.md, or README.md
+- New generic commands in `_template/commands/`
+
+Do NOT push personal content: workstream files, TRIGGERS.md, PERSONAS.md, CLAUDE.md, SESSION.md, CONTEXT.md, or anything in home/, [effort]/, ops/, health/.
+
+### How to push
+
+1. Clone or pull the template repo if you don't have it locally:
+   ```
+   git clone https://github.com/[your-github-username]/ai-project-template.git
+   ```
+
+2. Copy the updated files from kAI into the template repo:
+   ```
+   cp kAI/_template/* ai-project-template/_template/
+   cp kAI/_meta/DECISIONS.md ai-project-template/_meta/
+   # etc. — copy only what changed and belongs in the template
+   ```
+
+3. Commit and push the template repo:
+   ```
+   cd ai-project-template
+   git add .
+   git commit -m "Template update: [one-line summary]"
+   git push
+   ```
+
+### Triggering a template push in a session
+
+Say "push to template" or "update the template repo" — Kai will identify which files changed and are template-eligible, confirm the list, and execute the push.

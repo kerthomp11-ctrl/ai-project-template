@@ -27,34 +27,34 @@ Add an entry whenever something works better than expected, fails, or could be d
 Setup tools (`sync-template.js`, `check-updates.js`) are currently Node.js. A Python version should be investigated for users who have Python but not Node — particularly data scientists and analysts who are a natural MetaTemplate audience. Python's `difflib`, `pathlib`, and `argparse` cover the same ground cleanly. Decision to use Node documented in `_meta/DECISIONS.md`. Revisit when there is user feedback indicating Node is a friction point.
 
 ### 2026-03-30 — Copilot onboarding flow works without explicit setup instructions
-**Observation:** When Kerry ran /open on an uninitialized MetaTemplate download (no SESSION.md at root, no effort folders), GitHub Copilot in VS Code correctly identified the uninitialized state, explained what was missing, and offered to set up a new instance. It asked the right questions in the right order: name, workspace location, efforts, immediate focus — then built the workspace.
+**Observation:** When [Your Name] ran /open on an uninitialized MetaTemplate download (no SESSION.md at root, no effort folders), GitHub Copilot in VS Code correctly identified the uninitialized state, explained what was missing, and offered to set up a new instance. It asked the right questions in the right order: name, workspace location, efforts, immediate focus — then built the workspace.
 **Recommendation:** This behavior emerged from the AGENT.md structure without an explicit "if uninitialized, run setup" instruction. Consider making this explicit in copilot-instructions.md to ensure it's reliable across AI tools. Also validates that the template file structure communicates intent clearly enough for an AI to infer setup state.
 **Status:** Done — first real-world Copilot onboarding test passed
 
 ### 2026-03-30 — MetaTemplate missing .github/copilot-instructions.md for VS Code Copilot
-**Observation:** When Kerry set up the MetaTemplate on a corporate work PC (GitHub Copilot in VS Code, no Claude Code CLI), the template had no workspace-level Copilot instructions. Without this file, Copilot doesn't know to follow the session open/close system.
+**Observation:** When [Your Name] set up the MetaTemplate on a corporate work PC (GitHub Copilot in VS Code, no Claude Code CLI), the template had no workspace-level Copilot instructions. Without this file, Copilot doesn't know to follow the session open/close system.
 **Recommendation:** Add `.github/copilot-instructions.md` to the template root. Content is a lightweight session layer (open/close triggers, AGENT.md pointer) that is additive to any existing user-level Copilot instructions.
 **Status:** Done — added to `_template/.github/copilot-instructions.md` and pushed to `ai-project-template`
 
 ### 2026-03-29 — Setup script next-steps messages need real-world testing
 **Observation:** The "next steps" output at the end of each setup script was written based on current understanding of each tool's workflow. These have not been tested with a real user on a fresh machine.
 **Recommendation:** Test each script (claude-code, github-copilot, generic) on a clean install and verify the next-steps instructions are accurate and sufficient. Update messaging as needed.
-**Status:** Open — flag for first real-world test (Kerry's wife is the first test case for claude-code/Windows)
+**Status:** Open — flag for first real-world test ([Your Name]'s wife is the first test case for claude-code/Windows)
 
 
 
 ### 2026-03-27 — /close skill + session close overhaul
-**Observation:** Session close was vague, manual, and easy to skip. No git commit step. No `last_updated` enforcement. No safety net if Kerry just closed the terminal. Three decision logs (memory, DECISIONS.md, SESSION.md) had no ownership rules, causing drift.
+**Observation:** Session close was vague, manual, and easy to skip. No git commit step. No `last_updated` enforcement. No safety net if [Your Name] just closed the terminal. Three decision logs (memory, DECISIONS.md, SESSION.md) had no ownership rules, causing drift.
 **Recommendation:** (1) Created `/close` custom skill — runs full checklist automatically: Active Work, Last Session Decisions, last_updated frontmatter, git commit, git push. (2) CLAUDE.md updated: /close reminder fires when session-ending phrases are detected without /close; concrete ordered close checklist; Decision Log Ownership section added; memory dual-write rule strengthened. (3) PROCESS.md updated with /close in session workflow.
 **Status:** Done
 
 ### 2026-03-27 — Persona system needed for different effort types
 **Observation:** Different efforts require different AI response styles. A home improvement task, a health conversation, and a technical build all benefit from different tones and levels of directiveness. Currently Kai operates in one mode regardless of context.
-**Recommendation:** Design a persona/mode system with at least three variants: (1) Builder mode — current style, directive and efficient; (2) Supportive mode — encouraging, patient, emotionally aware — for sensitive personal topics like health and VA claims; (3) Collaborative mode — offers more explicit choices, checks in more often, makes Kerry feel more in control of decisions. Each effort's project_plan.md could declare a default persona. Kerry can also switch modes mid-conversation.
+**Recommendation:** Design a persona/mode system with at least three variants: (1) Builder mode — current style, directive and efficient; (2) Supportive mode — encouraging, patient, emotionally aware — for sensitive personal topics like health and VA claims; (3) Collaborative mode — offers more explicit choices, checks in more often, makes [Your Name] feel more in control of decisions. Each effort's project_plan.md could declare a default persona. [Your Name] can also switch modes mid-conversation.
 **Status:** Open — deferred, design when ready to implement
 
 ### 2026-03-27 — Memory should live inside the kAI file structure
-**Observation:** Kai's memory currently lives in Claude's internal storage (`~/.claude/projects/.../memory/`). This is not portable, not visible in the file structure, and not backed up with the project. If Kerry switches tools or machines, memory is lost.
+**Observation:** Kai's memory currently lives in Claude's internal storage (`~/.claude/projects/.../memory/`). This is not portable, not visible in the file structure, and not backed up with the project. If [Your Name] switches tools or machines, memory is lost.
 **Recommendation:** Mirror all memory files into the kAI workspace itself — e.g., a `_memory/` folder at the kAI root. This makes memory visible, editable, version-controlled, and portable. Claude's internal memory can remain as a fast-load cache, but the kAI file structure is the source of truth.
 **Status:** Done — `_memory/` created at kAI root; gitignored (private); backed up via OneDrive; CLAUDE.md updated with sync instructions
 
@@ -65,7 +65,7 @@ Setup tools (`sync-template.js`, `check-updates.js`) are currently Node.js. A Py
 
 ### 2026-03-27 — SESSION.md split into SESSION.md + CONTEXT.md
 **Observation:** SESSION.md was accumulating static personal context alongside active project state. As more projects are added, it would grow and become expensive to load every session.
-**Recommendation:** SESSION.md = pointer table + immediate focus only. Static context (who Kerry is, working convention, file map) moved to CONTEXT.md — loaded on demand. This pattern should be reflected in the _template/ files.
+**Recommendation:** SESSION.md = pointer table + immediate focus only. Static context (who [Your Name] is, working convention, file map) moved to CONTEXT.md — loaded on demand. This pattern should be reflected in the _template/ files.
 **Status:** Done
 
 ### 2026-03-27 — Three-effort structure defined
@@ -98,14 +98,14 @@ Setup tools (`sync-template.js`, `check-updates.js`) are currently Node.js. A Py
 
 ### 2026-03-27 — Publish to GitHub when project is active and structure is proven
 **Observation:** The kAI project should be published to GitHub, but not yet — the structure needs to be stable and there should be real working content (e.g. active gardening tasks, completed projects) to demonstrate the system in practice.
-**Recommendation:** When Kerry says "prepare for GitHub," do the following: (1) review all files and scrub any sensitive personal info (address, personal details) from template files, (2) create a README.md at the kAI root that serves as the GitHub landing page, (3) initialize a git repo and create a remote on GitHub. The home project content can either be excluded via .gitignore (private) or sanitized for sharing — Kerry to decide at that time.
+**Recommendation:** When [Your Name] says "prepare for GitHub," do the following: (1) review all files and scrub any sensitive personal info (address, personal details) from template files, (2) create a README.md at the kAI root that serves as the GitHub landing page, (3) initialize a git repo and create a remote on GitHub. The home project content can either be excluded via .gitignore (private) or sanitized for sharing — [Your Name] to decide at that time.
 **Status:** Open — deferred until project structure is stable and real tasks are underway
 
 ### 2026-03-27 — Two deliverable documents needed: pitch deck and retrospective guide
 **Observation:** Two distinct documents need to be created at different points in the project lifecycle:
 1. **Early-stage HTML presentation** — created soon, after the foundation is set. Explains what this system is, what it proposes, and why it matters. Audience: someone seeing this for the first time. Purpose: show the vision before the proof is complete.
 2. **End-stage process retrospective** — created once the system has been used long enough to validate. Documents how to repeat this process, what worked, why it worked, and the full journey. Audience: someone who wants to build their own version. Purpose: the teachable, shareable guide.
-**Recommendation:** When Kerry says "build the intro presentation," generate the HTML deck from current `_meta/` content. When Kerry says "build the retrospective," compile from IMPROVEMENTS.md, DECISIONS.md, and project history.
+**Recommendation:** When [Your Name] says "build the intro presentation," generate the HTML deck from current `_meta/` content. When [Your Name] says "build the retrospective," compile from IMPROVEMENTS.md, DECISIONS.md, and project history.
 **Status:** Open — both deferred until prompted
 
 ### 2026-03-27 — Future-proofing is a core design requirement

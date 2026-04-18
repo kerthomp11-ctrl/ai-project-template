@@ -11,11 +11,11 @@ Why the system is structured the way it is. Read this before changing the struct
 
 ## MetaTemplate Copyright is Intentional
 
-Kerry retains explicit copyright on MetaTemplate and all published materials. The copyright line in presentations and shared files must never be removed.
+[Your Name] retains explicit copyright on MetaTemplate and all published materials. The copyright line in presentations and shared files must never be removed.
 
-**Why:** Establishes clear separation between work developed on personal time (MetaTemplate, kAI) and any employment context — even if the same method is later applied at work. The copyright is evidence that this was developed independently, outside of employment, and is Kerry's personal intellectual property.
+**Why:** Establishes clear separation between work developed on personal time (MetaTemplate, kAI) and any employment context — even if the same method is later applied at work. The copyright is evidence that this was developed independently, outside of employment, and is [Your Name]'s personal intellectual property.
 
-**Rule:** Always include `© [year] Kerry Thompson` in any published presentation or shareable document. Do not add employer references or work-context language to MetaTemplate files.
+**Rule:** Always include `© [year] [Your Name]` in any published presentation or shareable document. Do not add employer references or work-context language to MetaTemplate files.
 
 ---
 
@@ -29,7 +29,7 @@ The kAI workspace organizes work into three distinct efforts, each self-containe
 
 Each effort follows the same pattern: `project_plan.md` (stable goals/reference) + `status.md` (current state). This is the template pattern proven in practice.
 
-**Health is the exception:** Lives at `C:\Users\kerry\OneDrive\kAI2026\` — never referenced by content in kAI files, only as a pointer. Health data never appears in template or meta files.
+**Health is the exception:** Lives at `[workspace-path] — never referenced by content in kAI files, only as a pointer. Health data never appears in template or meta files.
 
 **Flexibility is a core requirement:** This three-effort structure is a starting point. It can evolve — new efforts can be added, renamed, or split. The pattern (project_plan + status) stays consistent even as the content changes.
 
@@ -41,19 +41,19 @@ Each effort follows the same pattern: `project_plan.md` (stable goals/reference)
 
 **Why:** SESSION.md is loaded every session. If it holds static personal context, file maps, working conventions, and project details, it grows with every new project and becomes expensive to load. Keeping it to a pointer table means it never grows past ~15 lines regardless of how many projects exist.
 
-Static context (who Kerry is, working convention, property info, file map) lives in `CONTEXT.md` — loaded on demand when deep orientation is needed, not every session.
+Static context (who [Your Name] is, working convention, property info, file map) lives in `CONTEXT.md` — loaded on demand when deep orientation is needed, not every session.
 
 ---
 
 ## kAI and ai-project-template are Separate Repos (2026-03-28)
 
-**Decision:** kAI is a private GitHub repo (`kerthomp11-ctrl/kAI`). The template is a separate public repo (`kerthomp11-ctrl/ai-project-template`). They are not linked — updates flow deliberately, not automatically.
+**Decision:** kAI is a private GitHub repo (`[your-github-username]/kAI`). The template is a separate public repo (`[your-github-username]/ai-project-template`). They are not linked — updates flow deliberately, not automatically.
 
-**Why:** Previously kAI used ai-project-template as its git remote, which caused personal workstream files (kpro/, ops/, TRIGGERS.md, PERSONAS.md) to be published to the public repo unintentionally. The separation enforces a clean boundary: kAI is the workshop, ai-project-template is the published output.
+**Why:** Previously kAI used ai-project-template as its git remote, which caused personal workstream files ([effort]/, ops/, TRIGGERS.md, PERSONAS.md) to be published to the public repo unintentionally. The separation enforces a clean boundary: kAI is the workshop, ai-project-template is the published output.
 
 **How updates flow:** When a pattern or file in kAI is ready for general use, it gets pushed to ai-project-template manually. See `_meta/PROCESS.md` → "Pushing Template Improvements" for the steps.
 
-**Rule:** Never set kAI's git remote to ai-project-template again. kAI's remote is always `kerthomp11-ctrl/kAI` (private).
+**Rule:** Never set kAI's git remote to ai-project-template again. kAI's remote is always `[your-github-username]/kAI` (private).
 
 ---
 
@@ -83,7 +83,7 @@ Claude may propose and implement structural changes when a better pattern emerge
 
 **Rules:**
 - Small changes (renaming a file, adding a section, updating a template) — make it, document it in IMPROVEMENTS.md
-- Drastic changes (reorganizing folders, changing the core file pattern, altering how sessions load) — propose it and confirm with Kerry before touching anything
+- Drastic changes (reorganizing folders, changing the core file pattern, altering how sessions load) — propose it and confirm with [Your Name] before touching anything
 
 When in doubt, propose first.
 
@@ -105,10 +105,10 @@ As AI advances, the expectation is: project content files never change structure
 
 ## Working Relationship
 
-**Kerry's role:** Director and guide — sets goals, priorities, and direction.
+**[Your Name]'s role:** Director and guide — sets goals, priorities, and direction.
 **Claude's role:** Graduate Teaching Assistant + Graduate Research Assistant — executes the work, conducts research, writes documentation, and ensures the process is teachable and repeatable.
 
-Kerry does not need to do the legwork. Claude does. Kerry's input shapes what gets done and how.
+[Your Name] does not need to do the legwork. Claude does. [Your Name]'s input shapes what gets done and how.
 
 ---
 
