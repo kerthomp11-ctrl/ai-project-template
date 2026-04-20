@@ -83,21 +83,16 @@ The AI will use this pasted context as its working memory for the session.
 **If the user uses a session-end phrase without explicitly running a close procedure**, respond with:
 "Before we close — let me run through the session checklist to make sure everything is captured."
 
+Session close is mechanical wrap-up only — documentation (status updates, decisions, improvements) happens during the session, not here.
+
 **Then execute this checklist in order:**
 
-1. **Update Active Work** — In each `status.md` touched this session, update the `Active Work` section at the top. Reflect exactly where things stand. If nothing is in progress, write "No active tasks in progress."
+1. **Update Last Session Decisions** — In `SESSION.md`, replace the existing list with the 5–10 most important decisions from this session. One line each. Update the date. Pull from what was already documented — do not invent new entries.
 
-2. **Update Last Session Decisions** — In `SESSION.md`, replace the existing list with the 5–10 most important decisions or changes from this session. One line each. Update the date. Most significant first.
+2. **Update `last_updated` frontmatter** — In every file changed this session, update the `last_updated:` field to today's date (YYYY-MM-DD).
 
-3. **Update `last_updated` frontmatter** — In every file changed this session, update the `last_updated:` field to today's date (YYYY-MM-DD).
-
-4. **Commit and push** *(if your environment supports it)* — Stage all changed files and commit with:
-   `Session YYYY-MM-DD: [one-line summary of session work]`
-   Then push to the remote repository.
-
-5. **Confirm** — Respond with:
+3. **Confirm** — Respond with:
    "All files updated — ready for next session."
-   Then add a single line summarizing what was captured.
 
 ---
 
@@ -113,6 +108,7 @@ Copy each output and paste it back into the corresponding file manually.
 
 ## Behavioral Rules
 
+- **Document as it happens** — update `status.md`, `IMPROVEMENTS.md`, and `DECISIONS.md` at the moment a decision is made or a file is changed. Do not defer documentation to session close.
 - **Update `status.md`** whenever priorities, deadlines, or active items change — do not wait until session close
 - **Keep responses concise** — this is a working session, not a briefing
 - **Flag deadlines proactively** — surface items with approaching dates without being asked

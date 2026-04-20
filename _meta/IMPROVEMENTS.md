@@ -1,6 +1,6 @@
 ---
 type: improvements-log
-last_updated: 2026-04-18
+last_updated: 2026-04-20
 ---
 
 # Improvements Log
@@ -22,6 +22,37 @@ Add an entry whenever something works better than expected, fails, or could be d
 ---
 
 ## Log
+
+### 2026-04-20 — Document as it happens — /close is mechanical only
+**Observation:** `/close` was being used as the primary documentation step, but by end-of-session the conversation is often degraded (compressed context, lost detail). Important decisions and file changes were being documented too late, or missed entirely. [Your Name]'s wife's experience showed the same issue — close was doing too much at the wrong time.
+**Recommendation:** Shift documentation to in-the-moment: update `status.md`, `IMPROVEMENTS.md`, `DECISIONS.md`, and memory files when a decision is made or a file is changed — not at close. `/close` becomes a lightweight mechanical step: (1) write Last Session Decisions summary, (2) bump `last_updated` frontmatter, (3) confirm. Active Work updates happen during the session, not at close.
+**Status:** Done — CLAUDE.md Behavior section updated, `/close` skill slimmed, AGENT.md Session End + Behavioral Rules updated, `_template/commands/close.md` updated
+
+### 2026-04-20 — sync-template.js removed from public template
+
+### 2026-04-20 — sync-template.js removed from public template
+**Observation:** `setup/sync-template.js` was published to `ai-project-template` and downloaded by template users (including [Your Name]'s wife). The script tries to push to a GitHub repo that template users don't have — causing confusion and unexpected GitHub prompts. It is a maintainer-only tool.
+**Recommendation:** Remove from public template. `check-updates.js` stays — it's for users to check if their template is outdated. `sync-template.js` is already excluded from future syncs via EXCLUDE_PATTERNS. Role distinction: `check-updates.js` = user tool, `sync-template.js` = maintainer tool.
+**Status:** Done — removed from `ai-project-template` repo (commit 466e8b0); EXCLUDE_PATTERNS already protected against re-sync
+
+### 2026-04-20 — Auto-approve read-only tools in settings.json
+**Observation:** Every Read, Glob, Grep, and kai-tools call prompted for approval, creating friction for [Your Name] and confusion for new users. Read-only tool calls are non-destructive and safe to auto-approve.
+**Recommendation:** Add `allowedTools` to `~/.claude/settings.json` whitelisting: `Read`, `Glob`, `Grep`, `mcp__kai-tools__get_section`, `mcp__kai-tools__search_files`, `mcp__kai-tools__update_section`. Write/Edit/Bash/git operations still require approval.
+**Status:** Done — settings.json updated
+
+### 2026-04-20 — Auto-documentation pattern needed for system changes
+**Observation:** [Your Name] noted that documentation for system changes should be auto-captured rather than manually remembered. Currently IMPROVEMENTS.md is updated manually when changes are made. There is no hook or trigger that ensures a change to CLAUDE.md, settings.json, or skill files automatically produces a log entry.
+**Recommendation:** Investigate a hook-based pattern — e.g., a post-edit hook that prompts Kai to log any change to a system file (CLAUDE.md, settings.json, open.md, close.md) to IMPROVEMENTS.md automatically. Alternatively, make it a design rule: any session that touches system files must end with an IMPROVEMENTS.md entry. Could also be a `/close` checklist item — "were any system files changed this session? If yes, log them."
+**Status:** Open — design when ready; consider adding to /close checklist as interim solution
+
+### 2026-04-20 — SESSION.md is exempt from get_section — always read whole
+
+### 2026-04-20 — SESSION.md is exempt from get_section — always read whole
+**Observation:** SESSION.md was being read with two `get_section` calls (one for Last Session Decisions, one for Immediate Focus). Multiple tool calls are slower than one whole-file read, and SESSION.md is intentionally small — sectioning it adds overhead without benefit.
+**Recommendation:** SESSION.md should always be read whole with a single `Read` call. It is exempt from the `get_section` pattern. The design principle: small hub files that are always loaded in full should never be sectioned. CLAUDE.md now explicitly states this exemption. The `_template/commands/open.md` already had this right; the live `open.md` had drifted and was corrected.
+**Status:** Done — live `open.md` fixed; CLAUDE.md exemption note added; design principle documented
+
+### 2026-04-18 — Python alternative for setup scripts
 
 ### 2026-04-18 — Python alternative for setup scripts
 Setup tools (`sync-template.js`, `check-updates.js`) are currently Node.js. A Python version should be investigated for users who have Python but not Node — particularly data scientists and analysts who are a natural MetaTemplate audience. Python's `difflib`, `pathlib`, and `argparse` cover the same ground cleanly. Decision to use Node documented in `_meta/DECISIONS.md`. Revisit when there is user feedback indicating Node is a friction point.
