@@ -46,26 +46,34 @@ See **[QUICKSTART.md](QUICKSTART.md)** for full details on all environments.
 ## Repository Structure
 
 ```
-├── AGENT.md              ← AI session instructions
+├── AGENT.md              ← AI session instructions (AI-agnostic)
 ├── QUICKSTART.md         ← Full setup guide
 ├── setup/                ← Run one of these to set up your workspace
 │   ├── claude-code/      ← setup.ps1 (Windows) + setup.sh (Linux/Mac)
 │   ├── github-copilot/   ← setup.ps1 + setup.sh
-│   └── generic/          ← setup.ps1 + setup.sh
+│   ├── generic/          ← setup.ps1 + setup.sh
+│   └── mcp-tools/        ← Optional MCP server (section-level reads/writes, BM25 search)
+├── skills/               ← AI behavior definitions; loaded by name or slash command
 ├── _template/            ← Blank files copied into your workspace by the script
 │   ├── project_plan.md
 │   ├── status.md
 │   ├── completed.md
 │   ├── TRIGGERS.md       ← Keyword→file map (optional)
 │   ├── PERSONAS.md       ← AI response modes per workstream (optional)
-│   └── commands/         ← Session commands for Claude Code
-└── _meta/                ← Process docs and design decisions
+│   ├── commands/         ← Slash command dispatchers for Claude Code
+│   └── skills/           ← Blank skill templates for your own workstreams
+└── _meta/                ← Process docs, design decisions, and reference guides
+    ├── LITM.md           ← Lost-in-the-Middle strategies for long-session coherence
+    └── RESPONSIBILITIES.md ← User vs. AI responsibility split
 ```
 
 ## Philosophy
 
 - **Minimal setup** — one project name and a description is enough to start
 - **AI-agnostic** — plain markdown files work with any AI tool
+- **Skills, not prompts** — behaviors are defined once in `skills/`, referenced everywhere; no re-pasting
+- **Clear responsibilities** — the user directs and decides; the AI executes and documents (see `_meta/RESPONSIBILITIES.md`)
+- **LITM-aware** — built-in strategies for keeping long sessions coherent (see `_meta/LITM.md`)
 - **Persistent context** — the AI stays oriented across sessions without re-explaining
 - **Evolves with use** — the template improves as you use it; `_meta/IMPROVEMENTS.md` captures lessons as they happen
 

@@ -9,6 +9,61 @@ Each version entry has four sections:
 
 ---
 
+## [1.6] — 2026-05-02
+
+### Added
+- **`skills/` directory** — canonical skill definitions, separate from `.claude/commands/` dispatchers. Each `.claude/commands/` file is now a one-line wrapper pointing to `skills/`. Skills are defined by being in `skills/` — a slash command is not required. Skills without a slash command are **operational patterns** applied automatically.
+- **Skills vs. MCP tools taxonomy** — clear distinction: skills are self-contained AI behavior definitions (plain markdown, no server, reads and writes to loose markdown files are fine); MCP tools connect to external services or structured data stores and require a running server process.
+- **`skills/update-section.md`** — operational pattern for updating a named `##` section in any status file: Read → Edit → update `last_updated` frontmatter. Replaces the `update_section` MCP tool.
+- **`_meta/LITM.md`** — Lost-in-the-Middle strategies reference; 9 strategies ranked by effort and value for keeping long AI sessions coherent
+- **`_meta/RESPONSIBILITIES.md`** — user vs. AI responsibility split; who owns what and why the split matters for productive sessions
+- **`_template/skills/`** — blank workstream skill template (`openWorkstream.md`) and generic `INDEX.md` for building your own skill catalog
+- **`_template/commands/openWorkstream.md`** — dispatcher template for new workstream skills
+- **Attention priming in `/open`** — skill now prompts for session focus before loading a workstream; AI asks if not stated
+
+### Changed
+- `setup/mcp-tools/server.js` — `update_section` tool removed; section updates are now handled by the `update-section` skill (Read → Edit) rather than an MCP call
+- `AGENT.md` — Skills section renamed to "Skills and MCP Tools"; taxonomy defined; new System Philosophy section with pointers to `_meta/LITM.md` and `_meta/RESPONSIBILITIES.md`
+- `AGENT.md` and instruction files minified — session open/close instructions now reference skills instead of duplicating them (~30% smaller)
+
+### Upgrade Guide
+1. Create a `skills/` directory in your workspace root
+2. Move content from each `.claude/commands/` file into `skills/[name].md`
+3. Replace each `.claude/commands/` file with one line: `` Read `skills/[name].md` and execute the skill defined there. ``
+4. Create `skills/INDEX.md` — use `_template/skills/INDEX.md` as your starting point
+5. Create `skills/update-section.md` — copy from this repo; use it instead of `update_section` MCP calls
+6. If using `update_section` in your MCP server: remove it; restart the server
+7. Copy `_meta/LITM.md` and `_meta/RESPONSIBILITIES.md` to your workspace `_meta/` folder
+
+### AI Integration
+
+> Copy and paste the following prompt to your AI to apply the structural changes for this version:
+
+```
+I'm upgrading to MetaTemplate v1.6. Please apply these structural changes:
+
+1. Create a `skills/` directory at the root of my workspace.
+
+2. For each file in `.claude/commands/`, move its full content into a new file at `skills/[same-name].md`. Then replace the `.claude/commands/` file with exactly one line: "Read `skills/[name].md` and execute the skill defined there."
+
+3. Create `skills/INDEX.md` with three sections: Session Skills (open, close, checkTokens), Workstream Skills (one row per effort you have), and Operational Patterns.
+
+4. Create `skills/update-section.md` with this content:
+   "To update a named section in a status file: Read the file, Edit the section content, update the last_updated frontmatter to today's date. Use this instead of any MCP update_section tool call."
+
+5. In your instruction file (AGENT.md or CLAUDE.md), update the Skills section to read:
+   "Skills are self-contained AI behavior definitions — no external connections, no writes to structured data stores. Skills live in `skills/`. A skill is defined by its presence in `skills/` — a slash command is not required. MCP tools are server-backed capabilities that connect to external services or structured data stores."
+
+6. Add a read discipline rule near the top of your instruction file:
+   "Never use Read on a status or project file when get_section will do — Read is last resort."
+
+7. Add a Critical Rules section at the very bottom of your instruction file repeating your 4-5 most important behavioral rules. This improves AI recall in long sessions (see _meta/LITM.md — position-aware prompting).
+
+Tell me what you changed after each step.
+```
+
+---
+
 ## [1.5] — 2026-04-18
 
 ### Added
