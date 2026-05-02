@@ -24,3 +24,5 @@ Suggested starting point: [one sentence recommending what to work on next based 
 - `/openDFFS` — DFFS collaboration with Keith Hudson and Alex Bautz"
 
 Show only the last 5 decisions from SESSION.md (or fewer if less than 5 exist). Do NOT load any status files on open — workstreams load on demand via the skills above or when topics are referenced (see `_meta/TRIGGERS.md`).
+
+Before loading a workstream, [Your Name] should state session focus in one sentence — this primes attention before content loads. Example: "I'm focused on X today." If [Your Name] doesn't state focus, ask: "What's your focus for this session?"

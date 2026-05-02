@@ -21,14 +21,26 @@ An AI-assisted project workspace. An **effort** is any project, task, or workstr
 | `[effort]/status.md` | Current state — priorities, deadlines, active items | Every session |
 | `_meta/DECISIONS.md` | Structural/design decisions with rationale | When changing the system |
 | `_meta/IMPROVEMENTS.md` | Lessons learned and improvement log | When reviewing or evolving |
+| `_meta/RESPONSIBILITIES.md` | User vs. AI responsibility split — who owns what | When onboarding or reviewing workflow |
+| `_meta/LITM.md` | Lost-in-the-Middle strategies — keeping long sessions coherent | When sessions feel degraded |
 
-## Skills
+## Skills and MCP Tools
 
-Skills are self-contained AI behavior definitions — no external connections, no writes to structured data stores. Skills live in `skills/`; see `skills/INDEX.md` for the full catalog.
+**Skills** are self-contained AI behavior definitions — no external connections, no writes to structured data stores. Updating loose markdown files (status.md, SESSION.md) is a skill operation. Skills live in `skills/`; see `skills/INDEX.md` for the full catalog.
 
 A skill is defined by its presence in `skills/` — a slash command is not required. Slash commands (`.claude/commands/`) exist only for user-invoked skills. Skills without a slash command are **operational patterns** — applied automatically when the situation calls for it.
 
+**MCP tools** are server-backed capabilities that connect to external services or write to structured data stores. They require a running server process and are not portable as plain text files.
+
 In paste-based sessions, all skills can be invoked by name directly.
+
+## System Philosophy
+
+The core principles behind this system — read `_meta/RESPONSIBILITIES.md` and `_meta/LITM.md` for full detail.
+
+- **User directs, AI executes** — the user owns direction and decisions; the AI owns execution, documentation, and proactive surfacing. See `_meta/RESPONSIBILITIES.md`.
+- **Document at the moment of change** — never defer documentation to session close; decisions get lost
+- **LITM awareness** — long sessions degrade; use `/compact`, state focus before loading files, restate key facts in load-bearing prompts. See `_meta/LITM.md`.
 
 ## Session Start
 
