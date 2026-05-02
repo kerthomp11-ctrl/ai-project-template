@@ -2,7 +2,7 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
+import { readFileSync, readdirSync, statSync } from 'fs';
 import { join, relative, extname, resolve } from 'path';
 
 const SEARCH_ROOTS = (process.env.SEARCH_ROOTS || process.env.KAI_ROOT || '.')
@@ -181,37 +181,6 @@ function getSection(filePath, sectionName) {
   };
 }
 
-function updateSection(filePath, sectionName, newContent) {
-  const resolved = resolveFilePath(filePath);
-  let raw;
-  try { raw = readFileSync(resolved, 'utf-8'); }
-  catch { return { success: false, error: `File not found: ${filePath}` }; }
-
-  const lines = raw.split('\n');
-  const startIdx = lines.findIndex(l => l.startsWith(`## ${sectionName}`));
-  if (startIdx === -1) {
-    return { success: false, error: `Section "## ${sectionName}" not found in ${filePath}` };
-  }
-
-  let endIdx = lines.length;
-  for (let i = startIdx + 1; i < lines.length; i++) {
-    if (/^#{1,3} /.test(lines[i])) { endIdx = i; break; }
-  }
-
-  const today = new Date().toISOString().slice(0, 10);
-  const header = `## ${sectionName}`;
-  const body = newContent.startsWith(header) ? newContent : `${header}\n${newContent}`;
-  const newLines = body.split('\n');
-  if (newLines[newLines.length - 1] !== '') newLines.push('');
-
-  const before = lines.slice(0, startIdx).map(l =>
-    /^last_updated:/.test(l) ? `last_updated: ${today}` : l
-  );
-
-  writeFileSync(resolved, [...before, ...newLines, ...lines.slice(endIdx)].join('\n'), 'utf-8');
-  return { success: true, linesReplaced: endIdx - startIdx, newLines: newLines.length - 1 };
-}
-
 // --- MCP Server ---
 
 const index = new KaiIndex(SEARCH_ROOTS);
@@ -247,19 +216,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         required: ['file', 'section']
       }
     },
-    {
-      name: 'update_section',
-      description: 'Replace the content of a named section in a kAI project file. Automatically updates last_updated frontmatter. Section must already exist — cannot create new sections. Include the ## header line in the content parameter.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          file: { type: 'string', description: 'File path relative to kAI root (e.g. "ops/status.md") or absolute' },
-          section: { type: 'string', description: 'Section name matching a ## header exactly (e.g. "Active Work")' },
-          content: { type: 'string', description: 'Full new section content including the ## header line' }
-        },
-        required: ['file', 'section', 'content']
-      }
-    }
   ]
 }));
 
@@ -282,14 +238,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const result = getSection(file, section);
     return {
       content: [{ type: 'text', text: result.error ? result.error : JSON.stringify(result, null, 2) }]
-    };
-  }
-
-  if (name === 'update_section') {
-    const { file, section, content } = args;
-    const result = updateSection(file, section, content);
-    return {
-      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }]
     };
   }
 
